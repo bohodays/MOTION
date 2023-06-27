@@ -1,17 +1,29 @@
 import { ImageComponent } from "./components/page/item/image.js";
+import { NoteComponent } from "./components/page/item/note.js";
+import { TodoComponent } from "./components/page/item/todo.js";
 import { PageComponents } from "./components/page/page.js";
 
 class App {
   private readonly page: PageComponents;
   constructor(appRoot: HTMLElement) {
+    // page
     this.page = new PageComponents();
     this.page.attachTo(appRoot);
 
+    // image
     const image = new ImageComponent(
       "Image Title",
       "https://picsum.photos/600/300"
     );
     image.attachTo(appRoot, "beforeend");
+
+    // note
+    const note = new NoteComponent("Note Title", "Note Body");
+    note.attachTo(appRoot, "beforeend");
+
+    // todo
+    const todo = new TodoComponent("Todo Title", "Todo Item");
+    todo.attachTo(appRoot, "beforeend");
   }
 }
 
