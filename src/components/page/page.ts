@@ -6,9 +6,17 @@ export interface Composable {
 
 type OnCloseListener = () => void;
 
-class PageItemComponent
+interface SectionContainer extends Component, Composable {
+  setOnCloseListener(listener: OnCloseListener): void;
+}
+
+type SectionContainerConstructor = {
+  new (): SectionContainer;
+};
+
+export class PageItemComponent
   extends BaseComponent<HTMLElement>
-  implements Composable
+  implements SectionContainer
 {
   private closeListener?: OnCloseListener;
   constructor() {
@@ -42,13 +50,13 @@ export class PageComponents
   extends BaseComponent<HTMLUListElement>
   implements Composable
 {
-  constructor() {
+  constructor(private pageItemConstructor: SectionContainerConstructor) {
     // 무조건 상속하는 자식 클래스에서는 super를 이용해서 부모 클래스의 생성자를 호출해야 된다.
     super('<ul class="page"></ul>');
   }
 
   addChild(section: Component) {
-    const item = new PageItemComponent();
+    const item = new this.pageItemConstructor();
     item.addChild(section);
     item.attachTo(this.element, "beforeend");
     item.setOnCloseListener(() => {
