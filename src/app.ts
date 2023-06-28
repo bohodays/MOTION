@@ -1,33 +1,30 @@
-import { Component } from "./components/component.js";
+import { TextSectionInput } from "./components/dialog/input/text-input.js";
+import { MediaSectionInput } from "./components/dialog/input/media-input.js";
 import {
   InputDialog,
   MediaData,
   TextData,
 } from "./components/dialog/dialog.js";
-import { MediaSectionInput } from "./components/dialog/input/media-input.js";
-import { TextSectionInput } from "./components/dialog/input/text-input.js";
-import { ImageComponent } from "./components/page/item/image.js";
-import { NoteComponent } from "./components/page/item/note.js";
-import { TodoComponent } from "./components/page/item/todo.js";
 import { VideoComponent } from "./components/page/item/video.js";
+import { TodoComponent } from "./components/page/item/todo.js";
+import { NoteComponent } from "./components/page/item/note.js";
+import { ImageComponent } from "./components/page/item/image.js";
 import {
   Composable,
-  PageComponents,
+  PageComponent,
   PageItemComponent,
 } from "./components/page/page.js";
+import { Component } from "./components/component.js";
 
-type InputComponentConstructor<T = MediaSectionInput | TextSectionInput> = {
+type InputComponentConstructor<T = (MediaData | TextData) & Component> = {
   new (): T;
 };
 
 class App {
   private readonly page: Component & Composable;
   constructor(appRoot: HTMLElement, private dialogRoot: HTMLElement) {
-    // page
-    this.page = new PageComponents(PageItemComponent);
+    this.page = new PageComponent(PageItemComponent);
     this.page.attachTo(appRoot);
-
-    // dialog
 
     this.bindElementToDialog<MediaSectionInput>(
       "#new-image",
@@ -54,14 +51,26 @@ class App {
     );
 
     // For demo :)
-    this.page.addChild(new ImageComponent('Image Title', 'https://picsum.photos/800/400'));
-    this.page.addChild(new VideoComponent('Video Title', 'https://youtu.be/D7cwvvA7cP0'));
-    this.page.addChild(new NoteComponent('Note Title', "Don't forget to code your dream"));
-    this.page.addChild(new TodoComponent('Todo Title', 'TypeScript Course!'));
-    this.page.addChild(new ImageComponent('Image Title', 'https://picsum.photos/800/400'));
-    this.page.addChild(new VideoComponent('Video Title', 'https://youtu.be/D7cwvvA7cP0'));
-    this.page.addChild(new NoteComponent('Note Title', "Don't forget to code your dream"));
-    this.page.addChild(new TodoComponent('Todo Title', 'TypeScript Course!'));
+    this.page.addChild(
+      new ImageComponent("Image Title", "https://picsum.photos/800/400")
+    );
+    this.page.addChild(
+      new VideoComponent("Video Title", "https://youtu.be/D7cwvvA7cP0")
+    );
+    this.page.addChild(
+      new NoteComponent("Note Title", "Don't forget to code your dream")
+    );
+    this.page.addChild(new TodoComponent("Todo Title", "TypeScript Course!"));
+    this.page.addChild(
+      new ImageComponent("Image Title", "https://picsum.photos/800/400")
+    );
+    this.page.addChild(
+      new VideoComponent("Video Title", "https://youtu.be/D7cwvvA7cP0")
+    );
+    this.page.addChild(
+      new NoteComponent("Note Title", "Don't forget to code your dream")
+    );
+    this.page.addChild(new TodoComponent("Todo Title", "TypeScript Course!"));
   }
 
   private bindElementToDialog<T extends (MediaData | TextData) & Component>(
@@ -76,13 +85,10 @@ class App {
       dialog.addChild(input);
       dialog.attachTo(this.dialogRoot);
 
-      dialog.setOnCloseListener(() => {
+      dialog.setOnCloseListenr(() => {
         dialog.removeFrom(this.dialogRoot);
       });
-
-      dialog.setOnSubmitListener(() => {
-        // 섹션을 만들어서 페이지에 추가해준다.
-        // image
+      dialog.setOnSubmitListenr(() => {
         const image = makeSection(input);
         this.page.addChild(image);
         dialog.removeFrom(this.dialogRoot);
@@ -91,6 +97,4 @@ class App {
   }
 }
 
-// document.querySelector(".document")이 null일수도 있기 때문에 에러가 발생한다.
-// 그래서 뒤에 ! as HTMLElement을 붙여서 null이 아니라 HTMLElement라고 확정해준다. (Type Assertion)
 new App(document.querySelector(".document")! as HTMLElement, document.body);

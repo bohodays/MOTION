@@ -1,19 +1,23 @@
-import { BaseComponent, Component } from "../component.js";
+import { Hoverable, Droppable } from "./../common/type";
+import {
+  EnableDragging,
+  EnableDrop,
+  EnableHover,
+} from "../../decorators/draggable.js";
+import { Draggable } from "../common/type.js";
+import { BaseComponent, Component } from "./../component.js";
 
 export interface Composable {
   addChild(child: Component): void;
 }
-
 type OnCloseListener = () => void;
-
 type DragState = "start" | "stop" | "enter" | "leave";
-
 type OnDragStateListener<T extends Component> = (
   target: T,
   state: DragState
 ) => void;
 
-interface SectionContainer extends Component, Composable {
+interface SectionContainer extends Component, Composable, Draggable, Hoverable {
   setOnCloseListener(listener: OnCloseListener): void;
   setOnDragStateListener(listener: OnDragStateListener<SectionContainer>): void;
   muteChildren(state: "mute" | "unmute"): void;
@@ -25,6 +29,8 @@ type SectionContainerConstructor = {
   new (): SectionContainer;
 };
 
+@EnableDragging
+@EnableHover
 export class PageItemComponent
   extends BaseComponent<HTMLElement>
   implements SectionContainer
@@ -38,43 +44,24 @@ export class PageItemComponent
             <div class="page-item__controls">
               <button class="close">&times;</button>
             </div>
-          </li>
-        `);
-
+          </li>`);
     const closeBtn = this.element.querySelector(".close")! as HTMLButtonElement;
     closeBtn.onclick = () => {
       this.closeListener && this.closeListener();
     };
-
-    this.element.addEventListener("dragstart", (event: DragEvent) => {
-      this.onDragStart(event);
-    });
-    this.element.addEventListener("dragend", (event: DragEvent) => {
-      this.onDragEnd(event);
-    });
-    this.element.addEventListener("dragenter", (event: DragEvent) => {
-      this.onDragEnter(event);
-    });
-    this.element.addEventListener("dragleave", (event: DragEvent) => {
-      this.onDragLeave(event);
-    });
   }
-
   onDragStart(_: DragEvent) {
     this.notifyDragObservers("start");
     this.element.classList.add("lifted");
   }
-
   onDragEnd(_: DragEvent) {
     this.notifyDragObservers("stop");
     this.element.classList.remove("lifted");
   }
-
   onDragEnter(_: DragEvent) {
     this.notifyDragObservers("enter");
     this.element.classList.add("drop-area");
   }
-
   onDragLeave(_: DragEvent) {
     this.notifyDragObservers("leave");
     this.element.classList.remove("drop-area");
@@ -94,11 +81,9 @@ export class PageItemComponent
     )! as HTMLElement;
     child.attachTo(container);
   }
-
-  setOnCloseListener(listener: OnCloseListener): void {
+  setOnCloseListener(listener: OnCloseListener) {
     this.closeListener = listener;
   }
-
   setOnDragStateListener(listener: OnDragStateListener<PageItemComponent>) {
     this.dragStateListener = listener;
   }
@@ -116,38 +101,27 @@ export class PageItemComponent
   }
 }
 
-export class PageComponents
+@EnableDrop
+export class PageComponent
   extends BaseComponent<HTMLUListElement>
-  implements Composable
+  implements Composable, Droppable
 {
   private children = new Set<SectionContainer>();
   private dragTarget?: SectionContainer;
   private dropTarget?: SectionContainer;
 
   constructor(private pageItemConstructor: SectionContainerConstructor) {
-    // 무조건 상속하는 자식 클래스에서는 super를 이용해서 부모 클래스의 생성자를 호출해야 된다.
     super('<ul class="page"></ul>');
-
-    this.element.addEventListener("dragover", (event: DragEvent) => {
-      this.onDragOver(event);
-    });
-    this.element.addEventListener("drop", (event: DragEvent) => {
-      this.onDrop(event);
-    });
   }
-
-  onDragOver(event: DragEvent) {
-    event.preventDefault();
-  }
+  onDragOver(_: DragEvent): void {}
   onDrop(event: DragEvent) {
-    event.preventDefault();
-    // 여기에서 위치를 바꿔주면 된다.
     if (!this.dropTarget) {
       return;
     }
     if (this.dragTarget && this.dragTarget !== this.dropTarget) {
       const dropY = event.clientY;
       const srcElement = this.dragTarget.getBoundingRect();
+
       this.dragTarget.removeFrom(this.element);
       this.dropTarget.attach(
         this.dragTarget,
@@ -178,9 +152,12 @@ export class PageComponents
             this.updateSections("unmute");
             break;
           case "enter":
+            console.log("enter", target);
+
             this.dropTarget = target;
             break;
           case "leave":
+            console.log("leave", target);
             this.dropTarget = undefined;
             break;
           default:
@@ -195,16 +172,4 @@ export class PageComponents
       section.muteChildren(state);
     });
   }
-
-  // BaseComponent 만들기 이전 방식
-  // private element: HTMLUListElement;
-  // constructor() {
-  //   this.element = document.createElement("ul");
-  //   this.element.setAttribute("class", "page");
-  //   this.element.textContent = "This is PageComponent";
-  // }
-  // // position의 타입이 InsertPosition라는 것은 insertAdjacentElement 함수에 대한 설명을 통해 알 수 있다.
-  // attachTo(parent: HTMLElement, position: InsertPosition = "afterbegin"): void {
-  //   parent.insertAdjacentElement(position, this.element);
-  // }
 }

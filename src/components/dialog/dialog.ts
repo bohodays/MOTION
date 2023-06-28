@@ -1,5 +1,5 @@
-import { BaseComponent, Component } from "../component.js";
 import { Composable } from "../page/page.js";
+import { BaseComponent, Component } from "./../component.js";
 
 type OnCloseListener = () => void;
 type OnSubmitListener = () => void;
@@ -22,16 +22,13 @@ export class InputDialog
   submitListener?: OnSubmitListener;
 
   constructor() {
-    super(`
-    <dialog class="dialog">
-      <div class="dialog__container">
-        <button class="close">&times;</button>
-        <div id="dialog__body"></div>
-        <button class="dialog__submit">ADD</button>
-      </div>
-    </dialog>
-    `);
-
+    super(`<dialog class="dialog">
+          <div class="dialog__container">
+            <button class="close">&times;</button>
+            <div id="dialog__body"></div>
+            <button class="dialog__submit">ADD</button>
+          </div>
+        </dialog>`);
     const closeBtn = this.element.querySelector(".close")! as HTMLElement;
     closeBtn.onclick = () => {
       this.closeListener && this.closeListener();
@@ -45,15 +42,13 @@ export class InputDialog
     };
   }
 
-  setOnCloseListener(listener: OnCloseListener) {
+  setOnCloseListenr(listener: OnCloseListener) {
     this.closeListener = listener;
   }
-
-  setOnSubmitListener(listener: OnSubmitListener) {
+  setOnSubmitListenr(listener: OnSubmitListener) {
     this.submitListener = listener;
   }
-
-  addChild(child: Component): void {
+  addChild(child: Component) {
     const body = this.element.querySelector("#dialog__body")! as HTMLElement;
     child.attachTo(body);
   }
